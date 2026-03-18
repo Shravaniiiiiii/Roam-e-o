@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roam-e-o — AI India Travel Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--saffron:#FF6B00;--deep:#0F0A04;--charcoal:#1C1409;--gold:#D4A843;--ivory:#FDF6E3;--smoke:#8B7355;--mist:#C4B08A;--jade:#2D5A3D;--rose:#C45A3C;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--deep);color:var(--ivory);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:0.28;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.06'/%3E%3C/svg%3E");}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+input,select,textarea{background:rgba(255,255,255,0.05);border:1px solid rgba(245,237,214,0.12);border-radius:10px;padding:0.75rem 0.9rem;color:var(--ivory);font-family:'DM Sans',sans-serif;font-size:0.92rem;outline:none;transition:border-color 0.2s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--saffron);}
+select option{background:#1C1409;}
+input::placeholder,textarea::placeholder{color:var(--smoke);}
+button{cursor:pointer;font-family:'DM Sans',sans-serif;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,107,0,0.3);border-radius:2px;}
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;background:rgba(15,10,4,0.94);backdrop-filter:blur(16px);border-bottom:1px solid rgba(245,237,214,0.07);padding:0.85rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.65rem;font-weight:700;cursor:pointer;}
+.nav-logo em{color:var(--saffron);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+.nbtn{padding:0.42rem 1rem;border-radius:100px;font-size:0.81rem;border:1px solid rgba(245,237,214,0.15);background:transparent;color:var(--smoke);transition:all 0.2s;}
+.nbtn:hover,.nbtn.active{border-color:var(--saffron);color:var(--ivory);}
+.nbtn.active{background:rgba(255,107,0,0.12);}
+.nbtn.primary{background:linear-gradient(135deg,var(--saffron),#e55a00);border-color:transparent;color:#fff;}
+/* HERO */
+.hero{min-height:calc(100vh - 56px);display:flex;flex-direction:column;align-items:center;padding:3rem 1.5rem 2rem;position:relative;overflow:hidden;}
+.glow{position:absolute;border-radius:50%;pointer-events:none;}
+.eyebrow{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--saffron);margin-bottom:1rem;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,9vw,6.5rem);font-weight:700;line-height:0.92;text-align:center;margin-bottom:0.6rem;}
+.hero-title em{color:var(--saffron);font-style:italic;}
+/* FORM CARD */
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(245,237,214,0.1);border-radius:20px;padding:1.8rem;}
+.lbl{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:0.38rem;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;}
+.fg{display:flex;flex-direction:column;gap:0.38rem;}
+.btn-main{width:100%;padding:1.05rem;background:linear-gradient(135deg,var(--saffron),#e55a00);border:none;border-radius:14px;color:#fff;font-size:0.98rem;font-weight:600;transition:all 0.25s;letter-spacing:0.01em;}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,107,0,0.4);}
+.btn-main:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-sec{padding:0.48rem 1.1rem;border-radius:100px;border:1px solid rgba(245,237,214,0.18);background:transparent;color:var(--smoke);font-size:0.82rem;transition:all 0.2s;}
+.btn-sec:hover{border-color:var(--saffron);color:var(--ivory);}
+.btn-danger{border-color:rgba(196,98,45,0.35);color:var(--rose);}
+.btn-danger:hover{background:rgba(196,98,45,0.12);}
+.btn-gold{border-color:rgba(212,168,67,0.35);color:var(--gold);}
+.btn-gold:hover{background:rgba(212,168,67,0.1);}
+.btn-green{border-color:rgba(45,90,61,0.5);color:#6dbc7f;}
+.btn-green:hover{background:rgba(45,90,61,0.15);}
+/* DEST PICKER */
+.region-tabs{display:flex;flex-wrap:wrap;gap:0.45rem;justify-content:center;margin-bottom:0.9rem;}
+.rtab{padding:0.38rem 0.88rem;border-radius:100px;border:1px solid rgba(212,168,67,0.2);background:transparent;color:var(--smoke);font-size:0.78rem;transition:all 0.2s;}
+.rtab:hover,.rtab.active{border-color:var(--saffron);color:var(--ivory);}
+.rtab.active{background:rgba(255,107,0,0.15);}
+.dest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.55rem;max-height:280px;overflow-y:auto;padding:0.3rem;}
+.dcard{background:rgba(255,255,255,0.03);border:1px solid rgba(245,237,214,0.08);border-radius:13px;padding:0.75rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;gap:0.25rem;}
+.dcard:hover{background:rgba(255,107,0,0.1);border-color:rgba(255,107,0,0.35);transform:translateY(-2px);}
+.dcard.sel{background:rgba(255,107,0,0.15);border-color:var(--saffron);}
+/* LOADING */
+.loading-screen{min-height:calc(100vh - 56px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;text-align:center;padding:2rem;}
+.chakra{width:64px;height:64px;position:relative;}
+.ring{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;}
+.ring1{border-top-color:var(--saffron);animation:spin 1s linear infinite;}
+.ring2{inset:8px;border-right-color:var(--gold);animation:spin 1.5s linear infinite reverse;}
+.ring3{inset:16px;border-bottom-color:var(--jade);animation:spin 2s linear infinite;}
+/* RESULT */
+.result-wrap{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;animation:fadeUp 0.5s ease;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.65rem;font-weight:700;margin:1.8rem 0 1rem;display:flex;align-items:center;gap:0.9rem;}
+.section-title::after{content:'';flex:1;height:1px;background:rgba(245,237,214,0.08);}
+.dest-banner{background:linear-gradient(135deg,rgba(255,107,0,0.12),rgba(139,26,26,0.1));border:1px solid rgba(255,107,0,0.2);border-radius:22px;padding:1.8rem 2rem;margin-bottom:1.3rem;display:flex;align-items:flex-start;gap:1.8rem;flex-wrap:wrap;}
+.quick-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:0.75rem;margin-bottom:1.3rem;}
+.fcard{background:rgba(255,255,255,0.03);border:1px solid rgba(245,237,214,0.07);border-radius:15px;padding:0.9rem 1rem;}
+.season-banner{background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(45,90,61,0.1));border:1px solid rgba(212,168,67,0.2);border-radius:17px;padding:1.3rem 1.6rem;margin-bottom:1.3rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.budget-card{background:rgba(255,255,255,0.02);border:1px solid rgba(245,237,214,0.07);border-radius:17px;padding:1.4rem 1.7rem;margin-bottom:1.3rem;}
+.day-card{border-radius:17px;overflow:hidden;border:1px solid rgba(245,237,214,0.07);background:rgba(255,255,255,0.02);margin-bottom:0.9rem;}
+.day-hdr{padding:1rem 1.3rem;background:rgba(255,107,0,0.07);display:flex;align-items:center;gap:1rem;cursor:pointer;user-select:none;}
+.act-item{display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.85rem;}
+.reels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:0.75rem;margin-bottom:2rem;}
+.reel-card{aspect-ratio:9/16;border-radius:15px;overflow:hidden;position:relative;cursor:pointer;border:1px solid rgba(245,237,214,0.07);transition:transform 0.2s;}
+.reel-card:hover{transform:scale(1.04);}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:0.75rem;margin-bottom:2rem;}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(12px);}
+.modal-box{background:var(--charcoal);border:1px solid rgba(245,237,214,0.1);border-radius:22px;padding:1.8rem;max-width:460px;width:100%;position:relative;animation:fadeUp 0.3s ease;max-height:90vh;overflow-y:auto;}
+.mlink{display:flex;align-items:center;gap:0.8rem;padding:0.7rem 0.95rem;background:rgba(255,255,255,0.04);border:1px solid rgba(245,237,214,0.09);border-radius:11px;color:var(--ivory);text-decoration:none;font-size:0.83rem;transition:all 0.2s;margin-bottom:0.55rem;}
+.mlink:hover{background:rgba(255,107,0,0.1);border-color:rgba(255,107,0,0.3);}
+/* AUTH */
+.auth-page{min-height:calc(100vh - 56px);display:flex;align-items:center;justify-content:center;padding:2rem;}
+.auth-card{background:rgba(255,255,255,0.03);border:1px solid rgba(245,237,214,0.1);border-radius:22px;padding:2.4rem;width:100%;max-width:420px;animation:fadeUp 0.4s ease;}
+.err{background:rgba(196,98,45,0.15);border:1px solid rgba(196,98,45,0.4);border-radius:9px;padding:0.6rem 0.9rem;font-size:0.82rem;color:#e87b4a;margin-bottom:0.8rem;}
+/* TRIPS PAGE */
+.trips-wrap{max-width:960px;margin:0 auto;padding:2.5rem 1.5rem;animation:fadeUp 0.4s ease;}
+.trip-item{background:rgba(255,255,255,0.03);border:1px solid rgba(245,237,214,0.08);border-radius:17px;padding:1.3rem 1.5rem;margin-bottom:0.85rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;transition:border-color 0.2s;}
+.trip-item:hover{border-color:rgba(255,107,0,0.28);}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(45,90,61,0.9);border:1px solid #6dbc7f;border-radius:100px;padding:0.55rem 1.4rem;font-size:0.83rem;color:#8de0a0;z-index:99999;animation:fadeUp 0.3s ease;white-space:nowrap;}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.filter-input{width:200px;padding:0.45rem 0.8rem;font-size:0.83rem;}
+/* EDIT MODAL */
+.edit-area{width:100%;min-height:80px;resize:vertical;font-size:0.88rem;line-height:1.5;}
+@media(max-width:768px){
+  .chart-grid{grid-template-columns:1fr;}
+  .g3{grid-template-columns:1fr 1fr;}
+  .nav{padding:0.85rem 1rem;}
+  .dest-banner{flex-direction:column;gap:1rem;}
+}
+@media(max-width:480px){.g3,.g2{grid-template-columns:1fr;}.reels-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const API = 'http://localhost:5000/api';
+
+// ── Regions data ──────────────────────────────────────────────────────────────
+const REGIONS = {
+  "North":{ icon:"🏔️", places:[
+    {name:"Delhi",state:"Delhi",emoji:"🕌"},{name:"Agra",state:"Uttar Pradesh",emoji:"🕍"},
+    {name:"Varanasi",state:"Uttar Pradesh",emoji:"🪔"},{name:"Rishikesh",state:"Uttarakhand",emoji:"🧘"},
+    {name:"Leh Ladakh",state:"J&K/Ladakh",emoji:"🏜️"},{name:"Manali",state:"Himachal Pradesh",emoji:"🏂"},
+    {name:"Shimla",state:"Himachal Pradesh",emoji:"🏔️"},{name:"Amritsar",state:"Punjab",emoji:"🛕"},
+    {name:"Spiti Valley",state:"Himachal Pradesh",emoji:"🗻"},{name:"Haridwar",state:"Uttarakhand",emoji:"🌊"},
+    {name:"Nainital",state:"Uttarakhand",emoji:"⛵"},{name:"Dharamshala",state:"Himachal Pradesh",emoji:"☸️"},
+  ]},
+  "Rajasthan":{ icon:"🌵", places:[
+    {name:"Udaipur",state:"Rajasthan",emoji:"🏰"},{name:"Jaipur",state:"Rajasthan",emoji:"🏯"},
+    {name:"Jodhpur",state:"Rajasthan",emoji:"🔵"},{name:"Jaisalmer",state:"Rajasthan",emoji:"🐪"},
+    {name:"Pushkar",state:"Rajasthan",emoji:"🌺"},{name:"Ranthambore",state:"Rajasthan",emoji:"🐯"},
+    {name:"Bundi",state:"Rajasthan",emoji:"🎨"},{name:"Mount Abu",state:"Rajasthan",emoji:"🌄"},
+  ]},
+  "South":{ icon:"🌴", places:[
+    {name:"Goa",state:"Goa",emoji:"🏖️"},{name:"Munnar",state:"Kerala",emoji:"🍵"},
+    {name:"Alleppey",state:"Kerala",emoji:"🚣"},{name:"Hampi",state:"Karnataka",emoji:"🗿"},
+    {name:"Pondicherry",state:"Puducherry",emoji:"🇫🇷"},{name:"Mysuru",state:"Karnataka",emoji:"🏯"},
+    {name:"Kochi",state:"Kerala",emoji:"⚓"},{name:"Hyderabad",state:"Telangana",emoji:"💎"},
+    {name:"Madurai",state:"Tamil Nadu",emoji:"🛕"},{name:"Coorg",state:"Karnataka",emoji:"☕"},
+  ]},
+  "East":{ icon:"🌿", places:[
+    {name:"Kolkata",state:"West Bengal",emoji:"🎨"},{name:"Darjeeling",state:"West Bengal",emoji:"🍵"},
+    {name:"Puri",state:"Odisha",emoji:"🛕"},{name:"Kaziranga",state:"Assam",emoji:"🦏"},
+    {name:"Shillong",state:"Meghalaya",emoji:"🎸"},{name:"Sundarbans",state:"West Bengal",emoji:"🐅"},
+  ]},
+  "West":{ icon:"🌊", places:[
+    {name:"Mumbai",state:"Maharashtra",emoji:"🌆"},{name:"Ahmedabad",state:"Gujarat",emoji:"🧵"},
+    {name:"Rann of Kutch",state:"Gujarat",emoji:"🌕"},{name:"Aurangabad",state:"Maharashtra",emoji:"🗿"},
+    {name:"Pune",state:"Maharashtra",emoji:"🎓"},{name:"Nashik",state:"Maharashtra",emoji:"🍇"},
+  ]},
+  "Islands":{ icon:"🏝️", places:[
+    {name:"Andaman & Nicobar",state:"Andaman",emoji:"🤿"},
+    {name:"Havelock Island",state:"Andaman",emoji:"🐠"},
+    {name:"Lakshadweep",state:"Lakshadweep",emoji:"🐬"},
+  ]},
+};
+
+const LOAD_MSGS = ["Roam-e-o is mapping your journey…","Scouting hidden gems…","Calculating your budget…","Curating local food spots…","Building day-by-day plan…","Finding place reels…"];
+
+// ── API helper ────────────────────────────────────────────────────────────────
+async function api(path, opts={}) {
+  const token = localStorage.getItem('roameo_token');
+  const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, {...opts, headers});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+  return data;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function Toast({msg, onDone}) {
+  useEffect(()=>{ const t=setTimeout(onDone,2600); return ()=>clearTimeout(t); },[]);
+  return <div className="toast">✅ {msg}</div>;
+}
+
+// ── Navbar ────────────────────────────────────────────────────────────────────
+function Navbar({user, page, setPage, onLogout}) {
+  return (
+    <nav className="nav">
+      <div className="nav-logo" onClick={()=>setPage('home')}><em>Roam</em>-e-o</div>
+      <div className="nav-links">
+        {user ? <>
+          <button className={`nbtn ${page==='home'?'active':''}`} onClick={()=>setPage('home')}>🗺️ Plan</button>
+          <button className={`nbtn ${page==='trips'?'active':''}`} onClick={()=>setPage('trips')}>📋 Trips</button>
+          <span style={{color:'var(--smoke)',fontSize:'0.8rem',padding:'0 0.4rem'}}>Hi, {user.name.split(' ')[0]}</span>
+          <button className="nbtn" onClick={onLogout}>Sign Out</button>
+        </> : <>
+          <button className={`nbtn ${page==='login'?'active':''}`} onClick={()=>setPage('login')}>Login</button>
+          <button className="nbtn primary" onClick={()=>setPage('signup')}>Sign Up Free</button>
+        </>}
+      </div>
+    </nav>
+  );
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function AuthPage({mode, onSuccess, switchMode}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [pass, setPass]   = useState('');
+  const [err,  setErr]    = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    setErr(''); setLoading(true);
+    try {
+      const body = mode==='signup' ? {name,email,password:pass} : {email,password:pass};
+      const data = await api(`/auth/${mode}`, {method:'POST', body:JSON.stringify(body)});
+      localStorage.setItem('roameo_token', data.token);
+      onSuccess(data.user);
+    } catch(e) { setErr(e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <div style={{textAlign:'center',marginBottom:'2rem'}}>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'2.4rem',fontWeight:700}}>
+            <em style={{color:'var(--saffron)',fontStyle:'italic'}}>Roam</em>-e-o
+          </div>
+          <div style={{color:'var(--smoke)',fontSize:'0.88rem',marginTop:'0.3rem'}}>
+            {mode==='login'?'Welcome back 🪔':'Start planning your India trip'}
+          </div>
+        </div>
+        {err && <div className="err">⚠️ {err}</div>}
+        {mode==='signup' && (
+          <div className="fg" style={{marginBottom:'0.9rem'}}>
+            <label className="lbl">Full Name</label>
+            <input placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()}/>
+          </div>
+        )}
+        <div className="fg" style={{marginBottom:'0.9rem'}}>
+          <label className="lbl">Email</label>
+          <input type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()}/>
+        </div>
+        <div className="fg" style={{marginBottom:'1.2rem'}}>
+          <label className="lbl">Password</label>
+          <input type="password" placeholder="••••••••" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()}/>
+        </div>
+        <button className="btn-main" onClick={submit} disabled={loading}>
+          {loading ? 'Please wait…' : mode==='login' ? 'Login' : 'Create Free Account'}
+        </button>
+        <div style={{textAlign:'center',marginTop:'1.1rem',fontSize:'0.82rem',color:'var(--smoke)'}}>
+          {mode==='login'
+            ? <>No account? <button onClick={()=>switchMode('signup')} style={{background:'none',border:'none',color:'var(--saffron)',cursor:'pointer',fontSize:'0.82rem'}}>Sign up free</button></>
+            : <>Have an account? <button onClick={()=>switchMode('login')} style={{background:'none',border:'none',color:'var(--saffron)',cursor:'pointer',fontSize:'0.82rem'}}>Login</button></>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ── My Trips page ─────────────────────────────────────────────────────────────
+function TripsPage({onView, setToast}) {
+  const [trips,   setTrips]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter,  setFilter]  = useState('');
+  const [region,  setRegion]  = useState('');
+  const [deleting,setDeleting]= useState(null);
+  const [editTrip,setEditTrip]= useState(null);
+  const [editNotes,setEditNotes]=useState('');
+
+  const load = useCallback(()=>{
+    const q = new URLSearchParams();
+    if (filter) q.set('destination', filter);
+    if (region) q.set('region', region);
+    api(`/trips?${q.toString()}`).then(d=>setTrips(d.trips||[])).catch(console.error).finally(()=>setLoading(false));
+  },[filter,region]);
+
+  useEffect(()=>{ load(); },[load]);
+
+  const del = async (id) => {
+    if (!confirm('Delete this trip?')) return;
+    setDeleting(id);
+    try { await api(`/trips/${id}`, {method:'DELETE'}); setTrips(p=>p.filter(t=>t.id!==id)); setToast('Trip deleted'); }
+    catch(e) { alert(e.message); }
+    setDeleting(null);
+  };
+
+  const saveEdit = async () => {
+    try {
+      await api(`/trips/${editTrip.id}`, {method:'PATCH', body:JSON.stringify({tagline:editNotes})});
+      setTrips(p=>p.map(t=>t.id===editTrip.id?{...t,tagline:editNotes}:t));
+      setEditTrip(null); setToast('Trip updated');
+    } catch(e) { alert(e.message); }
+  };
+
+  const exportPDF = (id) => { window.open(`${API}/export/${id}?token=${localStorage.getItem('roameo_token')}`, '_blank'); };
+
+  const ratingColor = {IDEAL:'#6dbc7f',GOOD:'#D4A843',AVOID:'#C4622D'};
+
+  return (
+    <div className="trips-wrap">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.5rem',flexWrap:'wrap',gap:'0.8rem'}}>
+        <div>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'2.4rem',fontWeight:700}}>My Trips</h1>
+          <p style={{color:'var(--smoke)',fontSize:'0.88rem'}}>{trips.length} saved {trips.length===1?'itinerary':'itineraries'}</p>
+        </div>
+      </div>
+      {/* Filters */}
+      <div className="filter-bar">
+        <input className="filter-input" placeholder="🔍 Filter by destination…" value={filter} onChange={e=>setFilter(e.target.value)}/>
+        <select style={{width:160,padding:'0.45rem 0.8rem',fontSize:'0.83rem'}} value={region} onChange={e=>setRegion(e.target.value)}>
+          <option value="">All Regions</option>
+          {['North','Rajasthan','South','East','West','Islands'].map(r=><option key={r} value={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {loading ? <div style={{textAlign:'center',padding:'3rem',color:'var(--smoke)'}}>Loading…</div>
+      : trips.length===0 ? (
+        <div style={{textAlign:'center',padding:'4rem',color:'var(--smoke)'}}>
+          <div style={{fontSize:'3rem',marginBottom:'1rem'}}>🗺️</div>
+          <div>No trips yet. Plan your first one!</div>
+        </div>
+      ) : trips.map(t=>(
+        <div className="trip-item" key={t.id}>
+          <div style={{fontSize:'2.3rem',flexShrink:0}}>{t.dest_emoji||'📍'}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.25rem',fontWeight:700,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.destination}</div>
+            <div style={{color:'var(--smoke)',fontSize:'0.8rem',fontStyle:'italic',marginBottom:'0.25rem'}}>{t.tagline}</div>
+            <div style={{display:'flex',gap:'0.6rem',flexWrap:'wrap'}}>
+              {t.region && <span style={{fontSize:'0.72rem',color:'var(--smoke)'}}>{t.region}</span>}
+              {t['season.rating'] && <span style={{fontSize:'0.72rem',padding:'0.1rem 0.5rem',borderRadius:100,background:`${ratingColor[t['season.rating']]||'#6dbc7f'}18`,color:ratingColor[t['season.rating']]||'#6dbc7f'}}>{t['season.rating']}</span>}
+              <span style={{fontSize:'0.72rem',color:'var(--smoke)'}}>📅 {t.days_count}d · 💰 ₹{(t.budget||0).toLocaleString('en-IN')}</span>
+              <span style={{fontSize:'0.72rem',color:'var(--smoke)'}}>
+                {new Date(t.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+              </span>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:'0.5rem',flexShrink:0,flexWrap:'wrap'}}>
+            <button className="btn-sec btn-gold" onClick={()=>exportPDF(t.id)}>📄 PDF</button>
+            <button className="btn-sec" onClick={()=>{setEditTrip(t);setEditNotes(t.tagline||'');}}>✏️ Edit</button>
+            <button className="btn-sec" onClick={()=>onView(t.id)}>View</button>
+            <button className="btn-sec btn-danger" onClick={()=>del(t._id)} disabled={deleting===t._id}>{deleting===t._id?'…':'Delete'}</button>
+          </div>
+        </div>
+      ))}
+
+      {/* Edit Modal */}
+      {editTrip && (
+        <div className="modal-bg" onClick={()=>setEditTrip(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+            <button onClick={()=>setEditTrip(null)} style={{position:'absolute',top:'0.9rem',right:'0.9rem',background:'rgba(255,255,255,0.07)',border:'none',color:'var(--ivory)',width:28,height:28,borderRadius:'50%',cursor:'pointer'}}>✕</button>
+            <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',marginBottom:'1.2rem'}}>Edit Trip Notes</h3>
+            <label className="lbl">Tagline / Notes</label>
+            <textarea className="edit-area" value={editNotes} onChange={e=>setEditNotes(e.target.value)} style={{marginBottom:'1rem'}}/>
+            <button className="btn-main" onClick={saveEdit}>Save Changes</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Plan (Home) page ──────────────────────────────────────────────────────────
+function HomePage({user, setPage, setToast}) {
+  const [region,  setRegion]  = useState('North');
+  const [selDest, setSelDest] = useState(null);
+  const [custom,  setCustom]  = useState('');
+  const [days,    setDays]    = useState('');
+  const [budget,  setBudget]  = useState('');
+  const [travellers,setTravellers]=useState('couple');
+  const [style,   setStyle]   = useState('balanced');
+  const [stay,    setStay]    = useState('midrange');
+  const [screen,  setScreen]  = useState('form');
+  const [plan,    setPlan]    = useState(null);
+  const [meta,    setMeta]    = useState(null);
+  const [loadIdx, setLoadIdx] = useState(0);
+  const [err,     setErr]     = useState('');
+  const [openDay, setOpenDay] = useState(0);
+  const [reelF,   setReelF]   = useState('all');
+  const [modal,   setModal]   = useState(null);
+  const [viewId,  setViewId]  = useState(null);
+  const timerRef = useRef(null);
+
+  useEffect(()=>{
+    if(screen==='loading'){
+      let i=0;
+      timerRef.current=setInterval(()=>{i=(i+1)%LOAD_MSGS.length;setLoadIdx(i);},2200);
+    }
+    return()=>clearInterval(timerRef.current);
+  },[screen]);
+
+  // Load a saved trip by ID
+  useEffect(()=>{
+    if(!viewId) return;
+    api(`/trips/${viewId}`).then(t=>{ setPlan(t); setMeta({daysNum:t.days_count,budget:t.budget,travellers:t.travellers,style:t.travel_style}); setOpenDay(0); setReelF('all'); setScreen('result'); setViewId(null); }).catch(console.error);
+  },[viewId]);
+
+  const generate = async () => {
+    if(!user){ setPage('login'); return; }
+    const dest = selDest ? `${selDest.name}, ${selDest.state}` : custom.trim();
+    const destEmoji = selDest ? selDest.emoji : '📍';
+    const daysNum   = Math.min(parseInt(days)||0, 10);
+    if(!dest)   { setErr('Please select or type a destination!'); return; }
+    if(!daysNum){ setErr('Please enter number of days!'); return; }
+    if(!budget) { setErr('Please enter your budget!'); return; }
+    setErr('');
+    setScreen('loading'); setLoadIdx(0);
+    try {
+      const result = await api('/generate', {method:'POST', body:JSON.stringify({dest,days:daysNum,budget,travellers,style,stay,dest_emoji:destEmoji})});
+      clearInterval(timerRef.current);
+      setPlan(result); setMeta({daysNum,budget,travellers,style,destEmoji}); setOpenDay(0); setReelF('all');
+      setScreen('result');
+      setToast('Itinerary generated & saved!');
+    } catch(e) {
+      clearInterval(timerRef.current);
+      setScreen('form');
+      setErr(e.message || 'Generation failed');
+    }
+  };
+
+  const exportPDF = () => { if(plan?._id) window.open(`${API}/export/${plan.id}`, '_blank'); };
+
+  // ── LOADING ──────────────────────────────────────────────────────────────
+  if(screen==='loading') return (
+    <div className="loading-screen">
+      <div className="chakra"><div className="ring ring1"/><div className="ring ring2"/><div className="ring ring3"/></div>
+      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.5rem',fontStyle:'italic'}}>{LOAD_MSGS[loadIdx]}</div>
+      <div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.6rem',color:'var(--gold)',letterSpacing:'0.15em',textTransform:'uppercase'}}>🪔 Finding hidden temples & secret trails</div>
+    </div>
+  );
+
+  // ── RESULT ───────────────────────────────────────────────────────────────
+  if(screen==='result' && plan) {
+    const bb = plan.budget_breakdown||{};
+    const s  = plan.season||{};
+    const qf = plan.quick_facts||{};
+    const ratingColor={IDEAL:'#6dbc7f',GOOD:'#D4A843',AVOID:'#C4622D'};
+    const budgetCats=[
+      {label:'Accommodation',key:'accommodation',color:'#C4622D'},
+      {label:'Food & Dining', key:'food',          color:'#D4A843'},
+      {label:'Transport',     key:'transport',      color:'#4A5E3A'},
+      {label:'Activities',    key:'activities',     color:'#FF6B00'},
+      {label:'Shopping',      key:'shopping',       color:'#8B3A1E'},
+      {label:'Misc',          key:'misc',           color:'#8B7355'},
+    ];
+    const maxBV = Math.max(...budgetCats.map(c=>bb[c.key]||0),1);
+    const reels = (plan.reels||[]).filter(r=>reelF==='all'||r.type===reelF);
+    const bgThemes=['#1a0f06,#3d1f0a','#071a0f,#0f3320','#0f0715,#1f0f2a','#1a1006,#2e1e08','#071015,#0f2030','#1a0708,#330f10','#141a07,#253310','#150a1a,#2a1533','#1a1507,#33290f'];
+
+    return (
+      <div className="result-wrap">
+        <div style={{display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'1.8rem',flexWrap:'wrap'}}>
+          <button className="btn-sec" onClick={()=>setScreen('form')}>← Plan another</button>
+          {plan.id && <button className="btn-sec btn-green" onClick={exportPDF}>📄 Export PDF</button>}
+          {plan.id && <button className="btn-sec btn-gold" onClick={()=>setPage('trips')}>📋 My Trips</button>}
+        </div>
+
+        {/* Banner */}
+        <div className="dest-banner">
+          <div style={{fontSize:'3.5rem'}}>{plan.dest_emoji||meta?.destEmoji||'📍'}</div>
+          <div style={{flex:1}}>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(1.9rem,4.5vw,3.2rem)',fontWeight:700,lineHeight:1}}>{plan.destination}</h1>
+            <div style={{color:'var(--smoke)',fontStyle:'italic',fontSize:'0.92rem',margin:'0.3rem 0 0.75rem'}}>{plan.tagline}</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:'0.5rem'}}>
+              {[['📅',`${meta?.daysNum} days`],['💰',`₹${parseInt(meta?.budget||0).toLocaleString('en-IN')}`],['👤',meta?.travellers],['🗣️',plan.language]].filter(([,v])=>v).map(([ic,v])=>(
+                <span key={v} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(245,237,214,0.1)',borderRadius:100,padding:'0.25rem 0.75rem',fontSize:'0.76rem',color:'var(--mist)'}}>{ic} <strong style={{color:'var(--ivory)'}}>{v}</strong></span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Facts */}
+        <div className="quick-facts">
+          {[['Best For',qf.best_for],['Famous Food',qf.famous_food],['Transport',qf.transport],['Budget Level',qf.budget_level],['Monsoon',s.monsoon]].filter(([,v])=>v).map(([lbl,val])=>(
+            <div key={lbl} className="fcard">
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.54rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--smoke)',marginBottom:'0.22rem'}}>{lbl}</div>
+              <div style={{fontWeight:600,fontSize:'0.86rem'}}>{val}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Season */}
+        <div className="season-banner">
+          <span style={{fontSize:'2rem'}}>{s.icon}</span>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.1rem',color:'var(--gold)'}}>Best time: {s.best_time}</div>
+            <div style={{color:'var(--smoke)',fontSize:'0.82rem'}}>{s.current_advice} · {s.temperature}</div>
+          </div>
+          {s.rating && <div style={{padding:'0.3rem 0.85rem',borderRadius:20,fontFamily:"'Space Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',border:`1px solid ${ratingColor[s.rating]||'#6dbc7f'}44`,color:ratingColor[s.rating]||'#6dbc7f',background:`${ratingColor[s.rating]||'#6dbc7f'}11`}}>{s.rating}</div>}
+        </div>
+
+        {/* Budget */}
+        <div className="budget-card">
+          <div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'1.1rem'}}>Budget Breakdown · ₹ INR</div>
+          {budgetCats.map(c=>{ const v=bb[c.key]||0,pct=(v/maxBV)*100; return (
+            <div key={c.key} style={{display:'grid',gridTemplateColumns:'130px 1fr 80px',alignItems:'center',gap:'0.75rem',marginBottom:'0.6rem',fontSize:'0.82rem'}}>
+              <span style={{color:'var(--smoke)'}}>{c.label}</span>
+              <div style={{height:5,background:'rgba(255,255,255,0.06)',borderRadius:3,overflow:'hidden'}}>
+                <div style={{height:'100%',borderRadius:3,background:c.color,width:`${pct}%`,transition:'width 1.2s cubic-bezier(.4,0,.2,1)'}}/>
+              </div>
+              <span style={{textAlign:'right',fontWeight:600,fontSize:'0.78rem'}}>₹{v.toLocaleString('en-IN')}</span>
+            </div>
+          );})}
+          {bb.total?<div style={{textAlign:'right',marginTop:'0.8rem',fontFamily:"'Space Mono',monospace",fontSize:'0.7rem',color:'var(--gold)'}}>TOTAL · ₹{bb.total.toLocaleString('en-IN')}</div>:null}
+        </div>
+
+        {/* Days */}
+        <h2 className="section-title">📅 Day-by-Day Itinerary</h2>
+        {(plan.days||[]).map((day,di)=>(
+          <div className="day-card" key={di}>
+            <div className="day-hdr" onClick={()=>setOpenDay(openDay===di?-1:di)}>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.9rem',fontWeight:700,color:'var(--saffron)',minWidth:40}}>D{day.day}</div>
+              <div style={{flex:1}}><div style={{fontWeight:600,fontSize:'0.93rem'}}>{day.theme}</div><div style={{fontSize:'0.74rem',color:'var(--smoke)'}}>{day.subtitle}</div></div>
+              {day.estimated_cost?<div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.7rem',color:'var(--gold)'}}>₹{day.estimated_cost.toLocaleString('en-IN')}</div>:null}
+              <span style={{color:'var(--smoke)',fontSize:'0.78rem',transition:'transform 0.3s',transform:openDay===di?'rotate(180deg)':'none'}}>▼</span>
+            </div>
+            {openDay===di && (
+              <div style={{padding:'1.1rem 1.3rem'}}>
+                {(day.activities||[]).map((act,ai)=>(
+                  <div className="act-item" key={ai}>
+                    <span style={{fontFamily:"'Space Mono',monospace",fontSize:'0.61rem',color:'var(--smoke)',minWidth:50,paddingTop:3}}>{act.time}</span>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',marginTop:4,background:act.type==='food'?'#D4A843':act.type==='hidden'?'#5a9e6f':act.type==='stay'?'#8B7355':'#FF6B00'}}/>
+                      {ai<(day.activities.length-1)&&<div style={{width:1,flex:1,background:'rgba(245,237,214,0.08)',minHeight:24,margin:'3px 0'}}/>}
+                    </div>
+                    <div style={{flex:1,paddingBottom:'0.4rem'}}>
+                      <div style={{fontWeight:600,fontSize:'0.86rem',marginBottom:'0.1rem'}}>{act.name}</div>
+                      <div style={{fontSize:'0.77rem',color:'var(--smoke)',lineHeight:1.5}}>{act.description}</div>
+                      {act.tip&&<div style={{fontSize:'0.73rem',color:'var(--gold)',marginTop:'0.12rem'}}>💡 {act.tip}</div>}
+                      <div style={{display:'flex',gap:'0.4rem',marginTop:'0.25rem',flexWrap:'wrap'}}>
+                        <span style={{padding:'0.1rem 0.5rem',borderRadius:100,fontSize:'0.59rem',textTransform:'uppercase',letterSpacing:'0.07em',background:act.type==='food'?'rgba(212,168,67,0.12)':act.type==='hidden'?'rgba(45,90,61,0.2)':act.type==='stay'?'rgba(139,115,85,0.2)':'rgba(255,107,0,0.12)',color:act.type==='food'?'#D4A843':act.type==='hidden'?'#6dbc7f':act.type==='stay'?'#8B7355':'#FF6B00'}}>
+                          {act.type==='food'?'🍛 Food':act.type==='hidden'?'🌿 Hidden Gem':act.type==='stay'?'🏨 Stay':'⚡ Activity'}
+                        </span>
+                        {act.cost?<span style={{fontSize:'0.68rem',color:'var(--smoke)'}}>₹{act.cost.toLocaleString('en-IN')}</span>:null}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {day.transport_tip&&<div style={{background:'rgba(45,90,61,0.08)',border:'1px solid rgba(45,90,61,0.25)',borderRadius:12,padding:'0.8rem 1rem',marginTop:'0.5rem'}}><span style={{fontSize:'0.78rem',color:'#6dbc7f'}}>🚗 {day.transport_tip}</span></div>}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Reels */}
+        <h2 className="section-title" style={{marginTop:'0.5rem'}}>📱 Place Reels</h2>
+        <div style={{display:'flex',gap:'0.45rem',marginBottom:'0.9rem',flexWrap:'wrap'}}>
+          {[['all','All'],['hidden','🌿 Hidden'],['food','🍛 Food'],['activity','⚡ Activities']].map(([f,lbl])=>(
+            <button key={f} onClick={()=>setReelF(f)} style={{padding:'0.3rem 0.82rem',borderRadius:100,border:`1px solid ${reelF===f?'var(--saffron)':'rgba(245,237,214,0.12)'}`,background:reelF===f?'rgba(255,107,0,0.12)':'transparent',color:reelF===f?'var(--ivory)':'var(--smoke)',fontSize:'0.75rem',cursor:'pointer'}}>{lbl}</button>
+          ))}
+        </div>
+        <div className="reels-grid">
+          {reels.map((r,i)=>(
+            <div className="reel-card" key={i} onClick={()=>setModal(r)} style={{background:`linear-gradient(145deg,${bgThemes[i%9]})`}}>
+              <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2.5rem'}}>{r.emoji}</div>
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(15,10,4,0.92),transparent 55%)'}}/>
+              <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-60%)',width:34,height:34,background:'rgba(255,255,255,0.12)',backdropFilter:'blur(6px)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem'}}>▶</div>
+              <div style={{position:'absolute',top:'0.5rem',left:'0.5rem',padding:'0.14rem 0.48rem',borderRadius:100,fontSize:'0.55rem',letterSpacing:'0.09em',textTransform:'uppercase',backdropFilter:'blur(4px)',background:r.type==='hidden'?'rgba(45,90,61,0.65)':r.type==='food'?'rgba(212,168,67,0.45)':'rgba(255,107,0,0.45)',color:r.type==='hidden'?'#8de0a0':r.type==='food'?'#ffe0a0':'#ffd0a0'}}>{r.type}</div>
+              <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'0.6rem'}}>
+                <div style={{fontSize:'0.7rem',fontWeight:600,lineHeight:1.3,marginBottom:'0.1rem'}}>{r.title}</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.54rem',color:'var(--smoke)'}}>{r.instagram_tag}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tips */}
+        <h2 className="section-title">🧠 Insider Tips</h2>
+        <div className="tips-grid">
+          {(plan.insider_tips||[]).map((t,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(245,237,214,0.06)',borderRadius:13,padding:'0.9rem',display:'flex',gap:'0.75rem'}}>
+              <span style={{fontSize:'1.1rem',flexShrink:0}}>{t.icon}</span>
+              <div><strong style={{display:'block',fontSize:'0.82rem',marginBottom:'0.12rem'}}>{t.title}</strong><span style={{fontSize:'0.75rem',color:'var(--smoke)',lineHeight:1.5}}>{t.detail}</span></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Phrases */}
+        {(plan.local_phrases||[]).length>0&&<>
+          <h2 className="section-title">🗣️ Local Phrases</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(188px,1fr))',gap:'0.7rem',marginBottom:'2rem'}}>
+            {plan.local_phrases.map((ph,i)=>(
+              <div key={i} style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(245,237,214,0.07)',borderRadius:13,padding:'0.9rem'}}>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',color:'var(--gold)',marginBottom:'0.12rem'}}>{ph.phrase}</div>
+                <div style={{fontSize:'0.78rem',marginBottom:'0.08rem'}}>{ph.meaning}</div>
+                <div style={{fontSize:'0.66rem',color:'var(--smoke)'}}>{ph.language}</div>
+              </div>
+            ))}
+          </div>
+        </>}
+
+        {/* Reel modal */}
+        {modal&&(
+          <div className="modal-bg" onClick={()=>setModal(null)}>
+            <div className="modal-box" onClick={e=>e.stopPropagation()}>
+              <button onClick={()=>setModal(null)} style={{position:'absolute',top:'0.9rem',right:'0.9rem',background:'rgba(255,255,255,0.07)',border:'none',color:'var(--ivory)',width:28,height:28,borderRadius:'50%',cursor:'pointer',fontSize:'0.85rem'}}>✕</button>
+              <div style={{fontSize:'3rem',textAlign:'center',marginBottom:'0.8rem'}}>{modal.emoji}</div>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',textAlign:'center',marginBottom:'0.3rem'}}>{modal.title}</h2>
+              <p style={{color:'var(--smoke)',fontSize:'0.82rem',textAlign:'center',lineHeight:1.6,marginBottom:'1.3rem'}}>{modal.description}</p>
+              {[['▶️','Search on YouTube',`https://www.youtube.com/results?search_query=${encodeURIComponent(modal.search_query)}`],
+                ['📸','Instagram Reels',`https://www.instagram.com/explore/tags/${(modal.instagram_tag||'').replace('#','')}/`],
+                ['🎵','TikTok',`https://www.tiktok.com/search?q=${encodeURIComponent(modal.search_query)}`],
+                ['🔍','Google Travel Guide',`https://www.google.com/search?q=${encodeURIComponent(modal.search_query)}+travel+guide`],
+              ].map(([ic,lbl,url])=>(
+                <a key={lbl} className="mlink" href={url} target="_blank" rel="noreferrer">
+                  <span style={{fontSize:'1.1rem'}}>{ic}</span><strong>{lbl}</strong>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── FORM ─────────────────────────────────────────────────────────────────
+  return (
+    <div className="hero">
+      <div className="glow" style={{top:-120,right:-120,width:500,height:500,opacity:0.04,background:'radial-gradient(circle,#FF6B00,transparent 70%)',animation:'pulse 8s ease-in-out infinite'}}/>
+      <div className="glow" style={{bottom:-100,left:-100,width:400,height:400,opacity:0.05,background:'radial-gradient(circle,#D4A843,transparent 70%)',animation:'pulse 10s ease-in-out infinite reverse'}}/>
+
+      <div style={{textAlign:'center',marginBottom:'2.5rem',position:'relative',zIndex:1,animation:'fadeUp 0.5s ease'}}>
+        <div style={{display:'flex',gap:4,justifyContent:'center',marginBottom:'1.5rem'}}>
+          {['#FF9933','#FF9933','#FFFFFF','#FFFFFF','#138808','#138808'].map((c,i)=><div key={i} style={{width:32,height:5,borderRadius:2,background:c}}/>)}
+        </div>
+        <p className="eyebrow">AI · Powered · India · Travel · Planner</p>
+        <h1 className="hero-title"><em>Roam</em>-e-o</h1>
+        <p style={{color:'var(--smoke)',fontSize:'0.96rem',lineHeight:1.7,maxWidth:520,textAlign:'center',margin:'0 auto 1.5rem'}}>From the Himalayas to the backwaters — explore every corner of India with a personalised AI itinerary, budget plan & curated reels.</p>
+        {!user&&<div style={{background:'rgba(255,107,0,0.08)',border:'1px solid rgba(255,107,0,0.2)',borderRadius:12,padding:'0.65rem 1.1rem',fontSize:'0.82rem',color:'var(--smoke)',maxWidth:430,margin:'0 auto'}}>🔐 <button onClick={()=>setPage('signup')} style={{background:'none',border:'none',color:'var(--saffron)',cursor:'pointer',fontSize:'0.82rem'}}>Sign up free</button> to generate & save itineraries</div>}
+      </div>
+
+      {/* Destination picker */}
+      <div style={{width:'100%',maxWidth:900,margin:'0 auto 1.5rem',position:'relative',zIndex:1}}>
+        <div style={{fontFamily:"'Space Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',textAlign:'center',marginBottom:'0.75rem'}}>🗺️ Browse by region</div>
+        <div className="region-tabs">
+          {Object.entries(REGIONS).map(([r,v])=>(
+            <button key={r} className={`rtab ${region===r?'active':''}`} onClick={()=>setRegion(r)}>{v.icon} {r}</button>
+          ))}
+        </div>
+        <div className="dest-grid">
+          {(REGIONS[region]?.places||[]).map(p=>(
+            <div key={p.name} className={`dcard ${selDest?.name===p.name?'sel':''}`} onClick={()=>{setSelDest(p);setCustom('');}}>
+              <span style={{fontSize:'1.3rem'}}>{p.emoji}</span>
+              <span style={{fontSize:'0.78rem',fontWeight:600,lineHeight:1.2}}>{p.name}</span>
+              <span style={{fontSize:'0.67rem',color:'var(--smoke)'}}>{p.state}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="card" style={{width:'100%',maxWidth:680,position:'relative',zIndex:1}}>
+        {selDest ? (
+          <div style={{background:'rgba(255,107,0,0.1)',border:'1px solid rgba(255,107,0,0.3)',borderRadius:12,padding:'0.75rem 1rem',display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'1rem'}}>
+            <span style={{fontSize:'1.4rem'}}>{selDest.emoji}</span>
+            <div style={{flex:1}}><strong>{selDest.name}</strong><span style={{display:'block',fontSize:'0.74rem',color:'var(--smoke)'}}>{selDest.state}</span></div>
+            <button onClick={()=>setSelDest(null)} style={{background:'transparent',border:'none',color:'var(--smoke)',fontSize:'1rem'}}>✕</button>
+          </div>
+        ) : (
+          <div className="fg" style={{marginBottom:'1rem'}}>
+            <label className="lbl">📍 Or type any India destination</label>
+            <input placeholder="e.g. Spiti Valley, Sundarbans, Hampi…" value={custom} onChange={e=>setCustom(e.target.value)}/>
+          </div>
+        )}
+        <div className="g3" style={{marginBottom:'0.8rem'}}>
+          <div className="fg"><label className="lbl">📅 Days</label><input type="number" placeholder="e.g. 5" min="1" max="10" value={days} onChange={e=>setDays(e.target.value)}/></div>
+          <div className="fg"><label className="lbl">💰 Budget (₹)</label><input type="number" placeholder="e.g. 25000" value={budget} onChange={e=>setBudget(e.target.value)}/></div>
+          <div className="fg"><label className="lbl">👥 Travellers</label>
+            <select value={travellers} onChange={e=>setTravellers(e.target.value)}>
+              <option value="solo">Solo</option><option value="couple">Couple</option>
+              <option value="friends">Group</option><option value="family">Family</option>
+            </select>
+          </div>
+        </div>
+        <div className="g2" style={{marginBottom:'0.8rem'}}>
+          <div className="fg"><label className="lbl">🎯 Style</label>
+            <select value={style} onChange={e=>setStyle(e.target.value)}>
+              {[['balanced','Balanced'],['budget','Budget'],['luxury','Luxury'],['adventure','Adventure'],['cultural','Cultural'],['spiritual','Spiritual'],['foodie','Foodie'],['nature','Nature & Wildlife']].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+          <div className="fg"><label className="lbl">🏠 Stay</label>
+            <select value={stay} onChange={e=>setStay(e.target.value)}>
+              {[['budget','Budget/Hostel'],['midrange','Mid-range'],['boutique','Boutique'],['luxury','5-Star'],['homestay','Homestay'],['camping','Camping']].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+        </div>
+        {err&&<div className="err">⚠️ {err}</div>}
+        <button className="btn-main" style={{marginTop:'0.3rem'}} onClick={generate}>🪔 Let Roam-e-o Plan My Trip</button>
+      </div>
+    </div>
+  );
+}
+
+// ── App Root ──────────────────────────────────────────────────────────────────
+function App() {
+  const stored = localStorage.getItem('roameo_token');
+  const [user,  setUser]  = useState(stored ? JSON.parse(localStorage.getItem('roameo_user')||'null') : null);
+  const [page,  setPage]  = useState('home');
+  const [toast, setToast] = useState('');
+
+  const handleAuth = (u) => { setUser(u); localStorage.setItem('roameo_user', JSON.stringify(u)); setPage('home'); };
+  const logout = () => { localStorage.removeItem('roameo_token'); localStorage.removeItem('roameo_user'); setUser(null); setPage('home'); };
+
+  const changePage = (p) => { if(p==='trips' && !user){ setPage('login'); return; } setPage(p); };
+
+  return (
+    <>
+      {toast && <Toast msg={toast} onDone={()=>setToast('')}/>}
+      <Navbar user={user} page={page} setPage={changePage} onLogout={logout}/>
+      {page==='login'     && <AuthPage mode="login"  onSuccess={handleAuth} switchMode={p=>setPage(p)}/>}
+      {page==='signup'    && <AuthPage mode="signup" onSuccess={handleAuth} switchMode={p=>setPage(p)}/>}
+      {page==='trips'     && <TripsPage onView={()=>{}} setToast={setToast}/>}
+      {page==='home'      && <HomePage user={user} setPage={changePage} setToast={setToast}/>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
