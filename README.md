@@ -1,166 +1,174 @@
-# 🪔 Roam-e-o — Full Stack AI India Travel Planner
+# 🪔 Roam-e-o — AI India Travel Planner
 
-**Resume-grade full stack project.**
-React · Node.js/Express · MongoDB · Groq LLM · JWT Auth · Chart.js · PDF Export · REST API
+A full-stack AI-powered India travel planner that generates personalised itineraries, budget breakdowns, day-by-day plans and curated place reels using the Groq LLM API.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                  |
-|------------|-----------------------------|
-| Frontend   | React 18, Chart.js, CSS3    |
-| Backend    | Node.js, Express.js         |
-| Database   | MongoDB + Mongoose          |
-| AI         | Groq API (llama-3.3-70b)    |
-| Auth       | JWT + bcrypt                |
-| Analytics  | MongoDB Aggregation Pipelines|
-| Export     | PDFKit                      |
+| Layer      | Technology                          |
+|------------|-------------------------------------|
+| Frontend   | React 18 (via CDN), CSS3, Chart.js  |
+| Backend    | Node.js, Express.js                 |
+| Database   | MySQL + Sequelize ORM               |
+| AI         | Groq API (llama-3.3-70b) — FREE     |
+| Auth       | JWT + bcrypt                        |
+| PDF Export | PDFKit                              |
 
 ---
 
 ## Features
 
-- ✅ User signup/login with JWT authentication
-- ✅ AI-generated India travel itineraries via Groq LLM
-- ✅ Auto-save every generated trip to MongoDB
-- ✅ Save, edit, delete trips
-- ✅ Destination + region based filtering
-- ✅ **Analytics dashboard** — trips/month, top destinations, budget breakdown, travel style distribution
-- ✅ **MongoDB aggregation pipelines** for all analytics queries
-- ✅ **Export itinerary as PDF** — full formatted download
-- ✅ Budget estimator with animated bar visualizations
-- ✅ Chart.js charts — Bar, Doughnut, Horizontal Bar, Pie
-- ✅ Collapsible day-by-day itinerary with activities, tips, costs
-- ✅ Place reels with YouTube/Instagram/TikTok/Google links
-- ✅ Local language phrases per destination
-- ✅ REST API with 12 endpoints
+- 🗺️ Visual destination picker — 80+ India destinations across 8 regions
+- 🤖 AI-generated itineraries via Groq LLM (under 3 seconds)
+- 📅 Day-by-day itinerary with timed activities, tips and costs
+- 💰 Budget breakdown in ₹ INR across 6 categories
+- 🌤️ Season advisor — IDEAL / GOOD / AVOID ratings
+- 📱 Place reels with YouTube, Instagram & TikTok links
+- 🗣️ Regional language phrases per destination
+- 🧠 Insider tips specific to each destination
+- 💾 Save, edit and delete trips
+- 📄 Export itinerary as PDF
+- 🔐 JWT authentication with bcrypt password hashing
+- 🔍 Filter trips by destination and region
+- 📊 REST API with 12 endpoints
 
 ---
 
 ## Project Structure
 
 ```
-roameo/
+Roam-e-o/
 ├── frontend/
-│   └── index.html            # React app (all pages)
+│   └── index.html          # Complete React app — all pages in one file
 │
 ├── backend/
-│   ├── server.js             # Express app entry point
-│   ├── .env                  # Secrets (never commit!)
+│   ├── server.js           # Express entry point + MySQL sync
 │   ├── package.json
+│   ├── .env.example        # Environment variable template
+│   ├── config/
+│   │   └── database.js     # Sequelize MySQL connection
 │   ├── middleware/
-│   │   └── auth.js           # JWT middleware
+│   │   └── auth.js         # JWT verify middleware
 │   ├── models/
-│   │   ├── User.js           # User schema
-│   │   └── Trip.js           # Trip schema (with indexes)
+│   │   ├── User.js         # Sequelize User model (bcrypt hooks)
+│   │   └── Trip.js         # Sequelize Trip model (JSON columns + indexes)
 │   └── routes/
-│       ├── auth.js           # /api/auth/signup, login, me
-│       ├── generate.js       # /api/generate (Groq AI)
-│       ├── trips.js          # /api/trips CRUD + filter
-│       ├── analytics.js      # /api/analytics (aggregation)
-│       └── export.js         # /api/export/:id (PDF)
+│       ├── auth.js         # POST /signup /login GET /me
+│       ├── generate.js     # POST /generate → Groq AI → auto-save to MySQL
+│       ├── trips.js        # GET/PATCH/DELETE with filtering & pagination
+│       └── export.js       # GET /export/:id → PDF download
 │
 └── README.md
 ```
 
 ---
 
-## Quick Start
+## MySQL Schema
 
-### 1. Get free API keys
+Tables are created automatically by Sequelize on server start — no manual SQL needed.
 
-**Groq API** (free, no credit card)
-1. Go to console.groq.com
-2. Sign up → API Keys → Create Key
-3. Copy the key (starts with `gsk_...`)
+```sql
+-- users
+id | name | email | password | created_at | updated_at
 
-**MongoDB** (free local or Atlas)
-- Local: install from mongodb.com
-- Cloud: free at mongodb.com/atlas
-
-### 2. Setup backend
-
-```bash
-cd backend
-npm install
+-- trips
+id | user_id | destination | region | days_count | budget |
+travellers | travel_style | stay_pref | season (JSON) |
+quick_facts (JSON) | budget_breakdown (JSON) | days (JSON) |
+reels (JSON) | insider_tips (JSON) | local_phrases (JSON) |
+is_edited | created_at | updated_at
 ```
-
-Edit `.env`:
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/roameo
-JWT_SECRET=change_this_to_random_string
-GROQ_API_KEY=gsk_your_key_here
-```
-
-### 3. Start MongoDB (if local)
-```bash
-mongod
-```
-
-### 4. Start backend
-```bash
-npm run dev
-# Server: http://localhost:5000
-# API docs auto at http://localhost:5000/api/health
-```
-
-### 5. Open frontend
-Open `frontend/index.html` in browser.
 
 ---
 
 ## API Endpoints
 
-| Method | Route                    | Auth | Description               |
-|--------|--------------------------|------|---------------------------|
-| POST   | /api/auth/signup         | No   | Create account            |
-| POST   | /api/auth/login          | No   | Login → JWT token         |
-| GET    | /api/auth/me             | Yes  | Current user              |
-| POST   | /api/generate            | Yes  | Generate + save itinerary |
-| GET    | /api/trips               | Yes  | All trips (filter/page)   |
-| GET    | /api/trips/:id           | Yes  | Single trip               |
-| PATCH  | /api/trips/:id           | Yes  | Edit trip                 |
-| DELETE | /api/trips/:id           | Yes  | Delete trip               |
-| GET    | /api/analytics/dashboard | Yes  | User analytics            |
-| GET    | /api/analytics/global    | Yes  | Global stats              |
-| GET    | /api/export/:id          | Yes  | Download PDF              |
-| GET    | /api/health              | No   | Health check              |
+| Method | Route              | Auth | Description                    |
+|--------|--------------------|------|--------------------------------|
+| POST   | /api/auth/signup   | No   | Create account                 |
+| POST   | /api/auth/login    | No   | Login → JWT token              |
+| GET    | /api/auth/me       | Yes  | Get current user               |
+| POST   | /api/generate      | Yes  | Generate + auto-save itinerary |
+| GET    | /api/trips         | Yes  | All trips (filter + paginate)  |
+| GET    | /api/trips/:id     | Yes  | Single trip                    |
+| PATCH  | /api/trips/:id     | Yes  | Edit trip                      |
+| DELETE | /api/trips/:id     | Yes  | Delete trip                    |
+| GET    | /api/export/:id    | Yes  | Download trip as PDF           |
+| GET    | /api/health        | No   | Health check                   |
 
 ---
 
-## MongoDB Aggregation Pipelines Used
+## Setup & Run
 
-```js
-// Trips per month
-{ $group: { _id: { year, month }, count: { $sum: 1 } } }
+### Prerequisites
+- Node.js 18+
+- MySQL 8.0+
+- Free Groq API key from [console.groq.com](https://console.groq.com)
 
-// Top destinations
-{ $group: { _id: '$destination', count: { $sum: 1 } } }
-
-// Average budget breakdown
-{ $group: { avg_accommodation: { $avg: '...' }, ... } }
-
-// By region / style / traveller type
-{ $group: { _id: '$region', count: { $sum: 1 } } }
-
-// Summary stats (unique regions, total spent)
-{ $group: { unique_regions: { $addToSet: '$region' } } }
+### Step 1 — Create MySQL database
+```bash
+mysql -u root -p
+CREATE DATABASE roameo;
+EXIT;
 ```
+
+### Step 2 — Configure environment
+Create `backend/.env` (use `.env.example` as template):
+```
+PORT=5000
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=roameo
+DB_USER=root
+DB_PASS=your_mysql_password
+JWT_SECRET=any_long_random_string
+GROQ_API_KEY=gsk_your_key_here
+```
+
+### Step 3 — Install and start backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+You should see:
+```
+✅ MySQL tables synced
+🚀 Server running at http://localhost:5000
+```
+
+### Step 4 — Open frontend
+Open `frontend/index.html` directly in your browser.
+
+---
+
+## Environment Variables
+
+| Variable    | Description                         | Where to get           |
+|-------------|-------------------------------------|------------------------|
+| DB_HOST     | MySQL host (usually localhost)      | Your machine           |
+| DB_NAME     | Database name (roameo)              | You create it          |
+| DB_USER     | MySQL username                      | Your MySQL setup       |
+| DB_PASS     | MySQL password                      | Your MySQL setup       |
+| JWT_SECRET  | Any long random string              | Make one up            |
+| GROQ_API_KEY| Free LLM API key                   | console.groq.com       |
+
+> ⚠️ Never commit your `.env` file. It is listed in `.gitignore`.
+
+---
+
+## Deployment
+
+| Part     | Platform              | Cost |
+|----------|-----------------------|------|
+| Frontend | Netlify / GitHub Pages| Free |
+| Backend  | Render.com            | Free |
+| Database | Railway / PlanetScale | Free |
 
 ---
 
 ## Resume Description
 
-> Built a full-stack AI travel itinerary planner using React, Node.js/Express, and MongoDB, integrating the Groq LLM API to generate personalised India trip plans in under 3 seconds. Implemented JWT authentication, MongoDB aggregation pipelines for user analytics (trips/month, top destinations, budget breakdowns), an interactive Chart.js dashboard, and one-click PDF export. REST API with 12 endpoints, Mongoose schemas with compound indexes, and a React frontend with 4 pages — Plan, My Trips, Analytics, and Auth.
-
----
-
-## Deployment (all free)
-
-| Part     | Platform       |
-|----------|----------------|
-| Frontend | Netlify / GitHub Pages |
-| Backend  | Render.com     |
-| Database | MongoDB Atlas  |
+> Built a full-stack AI travel itinerary planner using React, Node.js/Express and MySQL with Sequelize ORM, integrating the Groq LLM API to generate personalised India trip plans in under 3 seconds. Implemented JWT authentication with bcrypt, REST API with 10 endpoints, JSON column storage for nested itinerary data with compound indexes, and one-click PDF export via PDFKit. Frontend built in React 18 with 4 pages — Plan, My Trips, Login and Signup.
