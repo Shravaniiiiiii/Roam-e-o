@@ -13,7 +13,7 @@ A full-stack AI-powered India travel planner that generates personalised itinera
 | Database   | MySQL + Sequelize ORM               |
 | AI         | Groq API (llama-3.3-70b) — FREE     |
 | Auth       | JWT + bcrypt                        |
-| PDF Export | PDFKit                              |
+
 
 ---
 
@@ -28,7 +28,6 @@ A full-stack AI-powered India travel planner that generates personalised itinera
 - 🗣️ Regional language phrases per destination
 - 🧠 Insider tips specific to each destination
 - 💾 Save, edit and delete trips
-- 📄 Export itinerary as PDF
 - 🔐 JWT authentication with bcrypt password hashing
 - 🔍 Filter trips by destination and region
 - 📊 REST API with 12 endpoints
@@ -57,7 +56,7 @@ Roam-e-o/
 │       ├── auth.js         # POST /signup /login GET /me
 │       ├── generate.js     # POST /generate → Groq AI → auto-save to MySQL
 │       ├── trips.js        # GET/PATCH/DELETE with filtering & pagination
-│       └── export.js       # GET /export/:id → PDF download
+│      
 │
 └── README.md
 ```
@@ -94,7 +93,6 @@ is_edited | created_at | updated_at
 | GET    | /api/trips/:id     | Yes  | Single trip                    |
 | PATCH  | /api/trips/:id     | Yes  | Edit trip                      |
 | DELETE | /api/trips/:id     | Yes  | Delete trip                    |
-| GET    | /api/export/:id    | Yes  | Download trip as PDF           |
 | GET    | /api/health        | No   | Health check                   |
 
 ---
